@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC Car Learning Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #90EE90 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #FF6B6B;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .letter-display {
+            font-size: 15em;
+            font-weight: bold;
+            color: #4ECDC4;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .instruction {
+            font-size: 1.8em;
+            color: #333;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .road {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #696969;
+            margin: 40px 0;
+            border-top: 5px solid #FFD700;
+            border-bottom: 5px solid #FFD700;
+            overflow: hidden;
+        }
+
+        .road-lines {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(
+                to right,
+                transparent 0px,
+                transparent 40px,
+                white 40px,
+                white 80px
+            );
+        }
+
+        .car {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            transition: left 1s ease-in-out;
+            filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        .controls {
+            margin: 30px 0;
+        }
+
+        button {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #FF5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 1.5em;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            display: inline-block;
+            min-width: 300px;
+        }
+
+        .listening {
+            color: #4CAF50;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4ECDC4, #44A08D);
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .celebration {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            font-size: 2em;
+            color: #4CAF50;
+            font-weight: bold;
+            animation: celebrateZoom 0.5s ease-out;
+        }
+
+        @keyframes celebrateZoom {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 ABC Car Learning Game 🚗</h1>
+            <p style="font-size: 1.2em; color: #666;">Say the letter to make the car go!</p>
+        </div>
+
+        <div class="progress">
+            <p style="font-size: 1.2em; font-weight: bold;">Progress: Letter <span id="letterCount">1</span> of 26</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+        </div>
+
+        <div class="letter-display" id="letterDisplay">A</div>
+        <div class="instruction" id="instruction">Say the letter "A"!</div>
+
+        <div class="road">
+            <div class="road-lines"></div>
+            <div class="car" id="car">🚗</div>
+        </div>
+
+        <div class="status" id="status">
+            <span id="statusText">Click "Start Listening" to begin!</span>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="startListening()">🎤 Start Listening</button>
+            <button id="stopBtn" onclick="stopListening()" disabled>⏹️ Stop Listening</button>
+            <button onclick="resetGame()">🔄 Restart</button>
+        </div>
+
+        <div class="celebration" id="celebration">
+            🎉 Amazing! You learned all the letters! 🎉
+        </div>
+    </div>
+
+    <script>
+        let currentLetter = 0;
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        let recognition;
+        let isListening = false;
+
+        // Check if browser supports speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const last = event.results.length - 1;
+                const text = event.results[last][0].transcript.trim().toUpperCase();
+                
+                console.log('Heard:', text);
+                document.getElementById('statusText').innerHTML = `I heard: "${text}"`;
+
+                // Check if the spoken text contains the current letter
+                if (text.includes(letters[currentLetter])) {
+                    correctAnswer();
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('statusText').innerHTML = `Error: ${event.error}. Try again!`;
+            };
+
+            recognition.onend = function() {
+                if (isListening && currentLetter < letters.length) {
+                    recognition.start(); // Restart if still listening
+                }
+            };
+        } else {
+            alert('Sorry! Your browser does not support speech recognition. Please use Chrome or Edge.');
+            document.getElementById('startBtn').disabled = true;
+        }
+
+        function startListening() {
+            if (recognition) {
+                isListening = true;
+                recognition.start();
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('statusText').innerHTML = '<span class="listening">🎤 Listening... Say the letter!</span>';
+            }
+        }
+
+        function stopListening() {
+            if (recognition) {
+                isListening = false;
+                recognition.stop();
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('statusText').innerHTML = 'Stopped listening. Click "Start Listening" to continue!';
+            }
+        }
+
+        function correctAnswer() {
+            // Play success sound (using a simple beep)
+            playSound();
+
+            // Move the car
+            moveCar();
+
+            // Show positive feedback
+            document.getElementById('statusText').innerHTML = '✅ Great job! The car is moving!';
+
+            // Wait for car animation, then move to next letter
+            setTimeout(() => {
+                currentLetter++;
+                if (currentLetter < letters.length) {
+                    updateDisplay();
+                } else {
+                    completionCelebration();
+                }
+            }, 1500);
+        }
+
+        function moveCar() {
+            const car = document.getElementById('car');
+            const currentLeft = parseInt(car.style.left) || 50;
+            const newLeft = currentLeft + 80;
+            
+            // If car goes off screen, reset position
+            if (newLeft > window.innerWidth - 100) {
+                car.style.left = '50px';
+            } else {
+                car.style.left = newLeft + 'px';
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('letterDisplay').textContent = letters[currentLetter];
+            document.getElementById('instruction').textContent = `Say the letter "${letters[currentLetter]}"!`;
+            document.getElementById('letterCount').textContent = currentLetter + 1;
+            
+            // Update progress bar
+            const progress = ((currentLetter + 1) / letters.length) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = Math.round(progress) + '%';
+        }
+
+        function completionCelebration() {
+            stopListening();
+            document.getElementById('celebration').style.display = 'block';
+            createConfetti();
+            
+            // Play celebration
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => playSound(800), i * 200);
+            }
+        }
+
+        function resetGame() {
+            currentLetter = 0;
+            updateDisplay();
+            document.getElementById('car').style.left = '50px';
+            document.getElementById('celebration').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressFill').textContent = '0%';
+            document.getElementById('statusText').innerHTML = 'Click "Start Listening" to begin!';
+            
+            if (isListening) {
+                stopListening();
+            }
+        }
+
+        function playSound(frequency = 600) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = 'confetti-fall 3s linear';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
